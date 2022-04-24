@@ -59,7 +59,7 @@ int *merge(int *arr_izq, int *arr_der, int n_izq, int n_der){
         k++;
     }
 
-    // Vacíar en merged los elementos restantes.
+    // VacÃ­ar en merged los elementos restantes.
     if(i<n_izq){
         // Vaciar arr_izq en merged
         for(int i_aux=i;i_aux<n_izq;i_aux++){
@@ -114,12 +114,12 @@ int main()
     cin >> mediciones;
 
     int repeticiones;
-    cout << "Ingrese repeticiones por medición: ";
+    cout << "Ingrese repeticiones por mediciÃ³n: ";
     cin >> repeticiones;
 
     cout << "---- Comienzan las mediciones con algoritmos de ordenamiento ----\n";
 
-    // Vectores que almacenearán los tiempos
+    // Vectores que almacenearÃ¡n los tiempos
     double time_rss[mediciones];
     double time_rqs[mediciones];
     double time_rms[mediciones];
@@ -131,8 +131,8 @@ int main()
     double time_ds[mediciones];
 
     for(int i=0;i<mediciones;i++){
-        cout << "Medición " << i << endl;
-        int n = pow(2,i);    //Tamaño del arreglo
+        cout << "MediciÃ³n " << i << endl;
+        int n = pow(2,i);    //TamaÃ±o del arreglo
 
         // Orden Aleatorio:
         int arr_ran[n];
