@@ -133,7 +133,7 @@ int **matResta(int **mat1, int **mat2, int n){
 }
 
 int **strassen(int **mat1, int **mat2, int n){
-    // Supondremos que la dimensión de la matriz es n * n, con n potencia de 2.
+    // Supondremos que la dimensiÃ³n de la matriz es n * n, con n potencia de 2.
     // Creamos A,B,C,D,E,F,G y H, matrices de n/2 * n/2:
     int **A = getQ1(mat1, n);
     int **B = getQ2(mat1, n);
