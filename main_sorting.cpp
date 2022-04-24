@@ -1,110 +1,182 @@
 #include <iostream>
 #include <stdlib.h>
-#include <algorithm>
-#include <bits/stdc++.h>
 #include <math.h>
-#include <string>
 #include <fstream>
 
 using namespace std;
 
-void generateRandomArray(int *arr, int n){
+void printMatriz(int **mat, int n){
+	for(int i=0;i<n;i++){
+		for(int j=0; j<n;j++){
+			cout << mat[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+
+int **crearMatriz(int n){
+	int **mat = new int*[n];
+	for(int i=0;i<n;i++){
+		mat[i]=new int[n];
+	}
+	return mat;
+}
+
+int **generarMatriz(int n){
+    int **mat = crearMatriz(n);
     for(int i=0;i<n;i++){
-        arr[i] = rand() % n + -n;
+        for(int j=0;j<n;j++){
+            mat[i][j] = rand() % 100 + -50;
+        }
     }
+    return mat;
 }
 
-void generateDecArray(int *arr, int n){
+int **multCubicaMatriz(int **mat1, int **mat2, int n){
+	int **mat3 = crearMatriz(n);
+	for(int i=0;i<n;i++){
+		for(int j=0;j<n;j++){
+			// Se calcula el elemento mat3[i][j]:
+			int sum = 0;
+			for(int k=0;k<n;k++){
+				sum = sum +mat1[i][k]*mat2[k][j];
+			}
+			mat3[i][j] = sum;
+		}
+	}
+	return mat3;
+}
+
+int **multTranspMatriz(int **mat1, int **mat2, int n){
+    // Primero transponemos mat2:
+    int **mat2T = crearMatriz(n);
     for(int i=0;i<n;i++){
-        arr[i] = n-i;
+        for(int j=0;j<n;j++){
+            mat2T[i][j] = mat2[j][i];
+        }
     }
+    // Multiplicamos "normalmente" utilizando la localidad de los datos
+    int **mat3 = crearMatriz(n);
+	for(int i=0;i<n;i++){
+		for(int j=0;j<n;j++){
+			int sum = 0;
+			for(int k=0;k<n;k++){
+				sum = sum +mat1[i][k]*mat2T[j][k];
+			}
+			mat3[i][j] = sum;
+		}
+	}
+	return mat3;
 }
 
-void generateCreArray(int *arr, int n){
+int **getQ1(int **mat, int n){
+    // Para obtener la "esquina superior izquierda" de una matriz.
+    int **Q1 = crearMatriz(n/2);
+    for(int i=0;i<n/2;i++){
+        for(int j=0;j<n/2;j++){
+            Q1[i][j] = mat[i][j];
+        }
+    }
+    return Q1;
+}
+
+int **getQ2(int **mat, int n){
+    // Para obtener la "esquina superior derecha" de una matriz.
+    int **Q2 = crearMatriz(n/2);
+    for(int i=0;i<n/2;i++){
+        for(int j=n/2;j<n;j++){
+            Q2[i][j-n/2] = mat[i][j];
+        }
+    }
+    return Q2;
+}
+
+int **getQ3(int **mat, int n){
+    // Para obtener la "esquina inferior izquierda" de una matriz.
+    int **Q3 = crearMatriz(n/2);
+    for(int i=n/2;i<n;i++){
+        for(int j=0;j<n/2;j++){
+            Q3[i-n/2][j] = mat[i][j];
+        }
+    }
+    return Q3;
+}
+
+int **getQ4(int **mat, int n){
+    // Para obtener la "esquina inferior derecha" de una matriz.
+    int **Q4 = crearMatriz(n/2);
+    for(int i=n/2;i<n;i++){
+        for(int j=n/2;j<n;j++){
+            Q4[i-n/2][j-n/2] = mat[i][j];
+        }
+    }
+    return Q4;
+}
+
+int **matSuma(int **mat1, int **mat2, int n){
+    int **mat_suma = crearMatriz(n);
     for(int i=0;i<n;i++){
-        arr[i] = i;
-    }
-}
-
-void swap(int *x, int *y){
-    int aux = *x;
-    *x = *y;
-    *y = aux;
-}
-
-void selectionSort(int *arr, int n){
-    for (int i=0;i<n;i++){
-        int min_index = i;
-        for (int j=i;j<n;j++){
-            if (arr[j]<arr[min_index]){
-                min_index = j;
-            }
-        }
-        swap(&arr[i], &arr[min_index]);
-    }
-}
-
-int *merge(int *arr_izq, int *arr_der, int n_izq, int n_der){
-    int n_merged = n_izq+n_der;
-    int *merged = new int[n_merged];
-    int i=0, j=0, k=0;
-    while(i<n_izq && j<n_der){
-        if(arr_izq[i]<arr_der[j]){
-            merged[k] = arr_izq[i];
-            i++;
-        }else{
-            merged[k] = arr_der[j];
-            j++;
-        }
-        k++;
-    }
-
-    // Vacíar en merged los elementos restantes.
-    if(i<n_izq){
-        // Vaciar arr_izq en merged
-        for(int i_aux=i;i_aux<n_izq;i_aux++){
-            merged[k] = arr_izq[i_aux];
-            k++;
+        for(int j=0;j<n;j++){
+            mat_suma[i][j] = mat1[i][j] + mat2[i][j];
         }
     }
-    if(j<n_der){
-        // Vaciar arr_izq en merged
-        for(int j_aux=j;j_aux<n_der;j_aux++){
-            merged[k] = arr_der[j_aux];
-            k++;
+    return mat_suma;
+}
+
+int **matResta(int **mat1, int **mat2, int n){
+    int **mat_resta = crearMatriz(n);
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            mat_resta[i][j] = mat1[i][j] - mat2[i][j];
         }
     }
-    return merged;
+    return mat_resta;
 }
 
-int *mergeSort(int *arr, int n){
-    if (n<=1) return arr;
-    int mitad = n/2;
-    int n_izq = mitad;
-    int n_der = n-mitad;
-    int *arr_izq = mergeSort(arr, n_izq);
-    int *arr_der = mergeSort(arr+n_izq, n_der);
-    return merge(arr_izq, arr_der, n_izq, n_der);
-}
+int **strassen(int **mat1, int **mat2, int n){
+    // Supondremos que la dimensión de la matriz es n * n, con n potencia de 2.
+    // Creamos A,B,C,D,E,F,G y H, matrices de n/2 * n/2:
+    int **A = getQ1(mat1, n);
+    int **B = getQ2(mat1, n);
+    int **C = getQ3(mat1, n);
+    int **D = getQ4(mat1, n);
+    int **E = getQ1(mat2, n);
+    int **F = getQ2(mat2, n);
+    int **G = getQ3(mat2, n);
+    int **H = getQ4(mat2, n);
+    if(n==2){
+        int **mat_producto = crearMatriz(2);
+        mat_producto[0][0] = A[0][0]*E[0][0] + B[0][0]*G[0][0];
+        mat_producto[0][1] = A[0][0]*F[0][0] + B[0][0]*H[0][0];
+        mat_producto[1][0] = C[0][0]*E[0][0] + D[0][0]*G[0][0];
+        mat_producto[1][1] = C[0][0]*F[0][0] + D[0][0]*H[0][0];
+        return mat_producto;
+    }
+    int **p1 = strassen(A, matResta(F,H,n/2), n/2);
+    int **p2 = strassen(matSuma(A,B,n/2), H, n/2);
+    int **p3 = strassen(matSuma(C,D,n/2), E, n/2);
+    int **p4 = strassen(D, matResta(G,E,n/2), n/2);
+    int **p5 = strassen(matSuma(A,D,n/2), matSuma(E,H,n/2), n/2);
+    int **p6 = strassen(matResta(B,D,n/2), matSuma(G,H,n/2), n/2);
+    int **p7 = strassen(matResta(A,C,n/2), matSuma(E,F,n/2), n/2);
 
-int partition(int *arr, int n){
-    int p = arr[0];
-    int i = 1;
-    for (int j=1;j<n;j++){
-        if(arr[j]<p){
-            swap(&arr[j],&arr[i]);
-            i++;
+    // Armar Z
+    int **Z1 = matSuma(matSuma(p5, matResta(p4,p2, n/2), n/2), p6, n/2);
+    int **Z2 = matSuma(p1,p2,n/2);
+    int **Z3 = matSuma(p3,p4,n/2);
+    int **Z4 = matSuma(matResta(p5,p3,n/2),matResta(p1,p7,n/2), n/2);
+
+    int **Z = crearMatriz(n);
+
+    for(int i=0;i<n/2;i++){
+        for(int j=0;j<n/2;j++){
+            Z[i][j] = Z1[i][j];
+            Z[i][j+n/2] = Z2[i][j];
+            Z[i+n/2][j] = Z3[i][j];
+            Z[i+n/2][j+n/2] = Z4[i][j];
         }
     }
-    swap(&arr[0],&arr[i-1]);
-    return i-1;
-}
-
-void quickSort(int *arr, int n){
-    if (n<=1) return;
-    int pivot_index = partition(arr, n); // Obtener el pivot
-    quickSort(&arr[0], pivot_index);  // Ordenar lado izquierdo
-    quickSort(&arr[pivot_index+1], n-pivot_index-1);  //Ordenar lado derecho
+    return Z;
 }
 
 int main()
@@ -117,139 +189,64 @@ int main()
     cout << "Ingrese repeticiones por medición: ";
     cin >> repeticiones;
 
-    cout << "---- Comienzan las mediciones con algoritmos de ordenamiento ----\n";
+    cout << "---- Comienzan las mediciones con algoritmos de multiplicación de matrices ----\n";
 
     // Vectores que almacenearán los tiempos
-    double time_rss[mediciones];
-    double time_rqs[mediciones];
-    double time_rms[mediciones];
-    double time_rs[mediciones];
-
-    double time_dss[mediciones];
-    double time_dqs[mediciones];
-    double time_dms[mediciones];
-    double time_ds[mediciones];
+    double time_clasic[mediciones];
+    double time_mod[mediciones];
+    double time_strassen[mediciones];
 
     for(int i=0;i<mediciones;i++){
         cout << "Medición " << i << endl;
         int n = pow(2,i);    //Tamaño del arreglo
 
-        // Orden Aleatorio:
-        int arr_ran[n];
-        generateRandomArray(arr_ran, n);
+        // Matrices Aleatorio:
+        int **mat1 = generarMatriz(n);
+        int **mat2 = generarMatriz(n);
 
-        // QuickSort
+        cout << "Clásico " << i << endl;
+        // Algoritmo Clásico
+        int **mat_pclasic = crearMatriz(n);
         clock_t start = clock();
         for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_quickSort = arr_ran;
-            quickSort(arr_4_quickSort, n);
+            mat_pclasic = multCubicaMatriz(mat1, mat2, n);
         }
-        time_rqs[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
+        time_clasic[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
 
-        // MergeSort
+        cout << "Modificado " << i << endl;
+        // Algoritmo Clásico modificado
+        int **mat_pmod = crearMatriz(n);
         start = clock();
         for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_mergeSort = arr_ran;
-            int *mergesort = mergeSort(arr_4_mergeSort, n);
+            mat_pmod = multTranspMatriz(mat1,mat2,n);
         }
-        time_rms[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
+        time_mod[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
 
-        // SelectionSort
+        cout << "Strassen " << i << endl;
+        // Strassen
+        int **mat_pstra = crearMatriz(n);
         start = clock();
         for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_selectionSort = arr_ran;
-            selectionSort(arr_4_selectionSort, n);
+            mat_pstra = strassen(mat1, mat2, n);
         }
-        time_rss[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
-
-        // sort C++
-        start = clock();
-        for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_cppSort = arr_ran;
-            std::sort(arr_4_cppSort, arr_4_cppSort+n);
-        }
-        time_rs[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
-
-        cout << "Orden aleatorio terminado \n";
-
-        // Orden Decreciente:
-        int arr_dec[n];
-        generateDecArray(arr_dec, n);
-
-        // QuickSort
-        start = clock();
-        for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_quickSort = arr_dec;
-            quickSort(arr_4_quickSort, n);
-        }
-        time_dqs[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
-
-        // MergeSort
-        start = clock();
-        for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_mergeSort = arr_dec;
-            int *mergesort = mergeSort(arr_4_mergeSort, n);
-        }
-        time_dms[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
-
-        // SelectionSort
-        start = clock();
-        for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_selectionSort = arr_dec;
-            selectionSort(arr_4_selectionSort, n);
-        }
-        time_dss[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
-
-        // sort C++
-        start = clock();
-        for (int rep=0;rep<repeticiones;rep++){
-            auto arr_4_cppSort = arr_dec;
-            std::sort(arr_4_cppSort, arr_4_cppSort+n);
-        }
-        time_ds[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
-
-        cout << "Orden decreciente terminado \n";
+        time_strassen[i] = ((double)clock() - (double)start) / CLOCKS_PER_SEC;
     }
 
     // Guardamos los tiempos en archivos .txt
 
-    ofstream fw_ran("Tiempos_arreglo_aleatorio.txt", std::ofstream::out);
-    if(fw_ran.is_open()){
+    ofstream fw("Tiempos.txt", std::ofstream::out);
+    if(fw.is_open()){
         for(int i=0;i<mediciones;i++){
-            fw_ran << time_rss[i] << " ";
+            fw << time_clasic[i] << " ";
         }
-        fw_ran << "\n";
+        fw << "\n";
         for(int i=0;i<mediciones;i++){
-            fw_ran << time_rqs[i] << " ";
+            fw << time_mod[i] << " ";
         }
-        fw_ran << "\n";
+        fw << "\n";
         for(int i=0;i<mediciones;i++){
-            fw_ran << time_rms[i] << " ";
-        }
-        fw_ran << "\n";
-        for(int i=0;i<mediciones;i++){
-            fw_ran << time_rs[i] << " ";
+            fw << time_strassen[i] << " ";
         }
     }
-
-    ofstream fw_dec("Tiempos_arreglo_decreciente.txt", std::ofstream::out);
-    if(fw_dec.is_open()){
-        for(int i=0;i<mediciones;i++){
-            fw_dec << time_dss[i] << " ";
-        }
-        fw_dec << "\n";
-        for(int i=0;i<mediciones;i++){
-            fw_dec << time_dqs[i] << " ";
-        }
-        fw_dec << "\n";
-        for(int i=0;i<mediciones;i++){
-            fw_dec << time_dms[i] << " ";
-        }
-        fw_dec << "\n";
-        for(int i=0;i<mediciones;i++){
-            fw_dec << time_ds[i] << " ";
-        }
-    }
-    return 0;
+	return 0;
 }
-
