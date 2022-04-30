@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
+#include <fstream>
 
 using namespace std;
 
@@ -19,16 +20,6 @@ int **crearMatriz(int n){
 		mat[i]=new int[n];
 	}
 	return mat;
-}
-
-int **generarMatriz(int n){
-    int **mat = crearMatriz(n);
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            mat[i][j] = rand() % 100 + -50;
-        }
-    }
-    return mat;
 }
 
 int **multCubicaMatriz(int **mat1, int **mat2, int n){
@@ -180,28 +171,125 @@ int **strassen(int **mat1, int **mat2, int n){
 
 int main()
 {
-	int k;
-	cout << "Ingrese el valor de n: ";
-	cin >> k;
-	int n = pow(2,k);
-	// nxn
-	int **mat1 = generarMatriz(n);
-	int **mat2 = generarMatriz(n);
-	cout << "\n Matriz 1: " << endl;
-    printMatriz(mat1, n);
-    cout <<"\n Matriz 2: " << endl;
-    printMatriz(mat2, n);
+    double *time_mc = new double[10];
+    double *time_mt = new double[10];
+    double *time_mstrass = new double[10];
 
-	int **mat_cubica = multCubicaMatriz(mat1, mat2, n);
-	int **mat_tranp = multTranspMatriz(mat1,mat2,n);
-	int **mat_strass = strassen(mat1, mat2, n);
+    for(int n=1;n<11;n++){
+        string filename = "Matrices20//Matrices_n"+to_string(n)+"_tot20.txt";
+        ifstream fr(filename, ifstream::in);
 
-	cout <<"\n Multiplicacion clasica: " << endl;
-	printMatriz(mat_cubica, n);
-	cout <<"\n Multiplicacion utilizando localidad de datos : " << endl;
-	printMatriz(mat_tranp, n);
-	cout <<"\n Multiplicacion Strassen: " << endl;
-    printMatriz(mat_strass, n);
+        if(fr.is_open()){
+            int dim, tot_rep;
+            fr >> dim;
+            fr >> tot_rep;
+            int inicio_stream = fr.tellg();
 
-	return 0;
+            // Creamos los contenedores para las matrices
+            int **mat1 = new int*[dim], **mat2 = new int*[dim];
+            for(int i=0;i<dim;i++){
+                mat1[i] = new int[dim];
+                mat2[i] = new int[dim];
+            }
+            // Leemos las matrices de a pares y aplicamos uno de los tres métodos:
+            {
+            // Multiplicación cúbica normal:
+            clock_t start = clock();
+            for(int rep=0;rep<tot_rep;rep++){
+                for(int i=0;i<dim;i++){
+                    for(int j=0;j<dim;j++){
+                        fr >> mat1[i][j];
+                    }
+                }
+                for(int i=0;i<dim;i++){
+                    for(int j=0;j<dim;j++){
+                        fr >> mat2[i][j];
+                    }
+                }
+                int **matMul = multCubicaMatriz(mat1,mat2,dim);
+            }
+            time_mc[n-1] = (((double)clock() - (double)start) / CLOCKS_PER_SEC) / tot_rep;
+            }
+            cout << "Cubica done!\n";
+
+            // Multiplicación cúbica aprovechando la ubicación en memoria:
+            {
+            fr.clear();
+            fr.seekg(inicio_stream, ios::beg);
+
+            clock_t start = clock();
+            for(int rep=0;rep<tot_rep;rep++){
+                for(int i=0;i<dim;i++){
+                    for(int j=0;j<dim;j++){
+                        fr >> mat1[i][j];
+                    }
+                }
+                for(int i=0;i<dim;i++){
+                    for(int j=0;j<dim;j++){
+                        fr >> mat2[i][j];
+                    }
+                }
+                int **matMul = multTranspMatriz(mat1,mat2,dim);
+            }
+            time_mt[n-1] = (((double)clock() - (double)start) / CLOCKS_PER_SEC) / tot_rep;
+            }
+            cout << "Cubica Transp done!\n";
+
+            //Multiplicación por Straseen
+            {
+            fr.clear();
+            fr.seekg(inicio_stream, ios::beg);
+
+            clock_t start = clock();
+            for(int rep=0;rep<tot_rep;rep++){
+                for(int i=0;i<dim;i++){
+                    for(int j=0;j<dim;j++){
+                        fr >> mat1[i][j];
+                    }
+                }
+                for(int i=0;i<dim;i++){
+                    for(int j=0;j<dim;j++){
+                        fr >> mat2[i][j];
+                    }
+                }
+                int **matMul = multTranspMatriz(mat1,mat2,dim);
+            }
+            time_mstrass[n-1] = (((double)clock() - (double)start) / CLOCKS_PER_SEC) / tot_rep;
+            }
+            cout << "Strassen done!\n";
+        }
+        fr.close();
+
+        cout << filename << ": \n";
+    }
+
+    string multCubica = "TiemposMatrices20//multCubica.txt";
+    string multTransp = "TiemposMatrices20//multTransp.txt";
+    string multStrassen = "TiemposMatrices20//multStrassen.txt";
+
+    ofstream fw_mc(multCubica, ofstream::out);
+    if(fw_mc.is_open()){
+        for(int i=0;i<10;i++){
+            fw_mc << time_mc[i] << ", ";
+        }
+    }
+    fw_mc.close();
+
+    ofstream fw_mt(multTransp, ofstream::out);
+    if(fw_mt.is_open()){
+        for(int i=0;i<10;i++){
+            fw_mt << time_mt[i] << ", ";
+        }
+    }
+    fw_mt.close();
+
+    ofstream fw_mstrass(multStrassen, ofstream::out);
+    if(fw_mstrass.is_open()){
+        for(int i=0;i<10;i++){
+            fw_mstrass << time_mstrass[i] << ", ";
+        }
+    }
+    fw_mstrass.close();
+
+    return 0;
 }
